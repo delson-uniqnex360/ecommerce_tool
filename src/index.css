@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Reset margins, paddings, and box-sizing */
+@layer base {
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+}
