@@ -1,5 +1,6 @@
 // src/components/layout/Sidebar.tsx
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { clearUserId } from "../../utils/auth";
 
 const AppSidebar = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ const AppSidebar = () => {
     const navLinks = [
         { name: "Dashboard", path: "/dashboard" },
         { name: "Customer List", path: "/users" },
+        { name: "Order List", path: "/order" },
         // Add more links here if needed
     ];
 
@@ -32,8 +34,8 @@ const AppSidebar = () => {
                                 <Link
                                     to={link.path}
                                     className={`block py-2 px-4 rounded ${isActive(link.path)
-                                            ? "bg-[#eee] text-gray-900 font-semibold"
-                                            : "hover:bg-gray-700 transition-colors"
+                                        ? "bg-[#eee] text-gray-900 font-semibold"
+                                        : "hover:bg-gray-700 transition-colors"
                                         }`}
                                 >
                                     {link.name}
@@ -47,7 +49,10 @@ const AppSidebar = () => {
             {/* Logout button */}
             <div className="px-4 mb-6">
                 <button
-                    onClick={() => navigate("/login")}
+                    onClick={() => {
+                        clearUserId();
+                        navigate("/login")
+                    }}
                     className="w-full py-2 px-4 rounded bg-red-500 hover:bg-red-600 transition-colors font-medium"
                 >
                     Logout

@@ -1,33 +1,32 @@
-import { useState } from "react"
-import { useQuery } from "@tanstack/react-query"
-
-
-import api from "../../../api/axios"
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "../../../api/axios";
 
 interface Column {
-    header: string
-    accessor: string
-    render?: (row: any) => React.ReactNode
-    valueColors?: Record<string, string>
+    header: string;
+    accessor: string;
+    render?: (row: any) => React.ReactNode;
+    valueColors?: Record<string, string>;
+    sortable?: boolean; // New
 }
 
 interface FilterConfig {
-    key: string
-    label: string
-    type: "select" | "date" | "daterange" | "text" | "number"
-    options?: { label: string; value: string }[]
+    key: string;
+    label: string;
+    type: "select" | "date" | "daterange" | "text" | "number";
+    options?: { label: string; value: string }[];
 }
 
 interface AppTableProps {
-    title?: string
-    endpoint: string
-    queryKey: any[]
-    columns: Column[]
-    showSearch?: boolean
-    filters?: FilterConfig[]
-    showView?: boolean
-    showDelete?: boolean
-    pageSize?: number
+    title?: string;
+    endpoint: string;
+    queryKey: any[];
+    columns: Column[];
+    showSearch?: boolean;
+    filters?: FilterConfig[];
+    showView?: boolean;
+    showDelete?: boolean;
+    pageSize?: number;
 }
 
 export default function AppTable({
@@ -41,11 +40,12 @@ export default function AppTable({
     showDelete = false,
     pageSize = 24,
 }: AppTableProps) {
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState("");
+    const [filterValues, setFilterValues] = useState<any>({});
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 1 | -1 } | null>(null);
 
-    const [page, setPage] = useState(1)
-    const [search, setSearch] = useState("")
-    const [filterValues, setFilterValues] = useState<any>({})
-
+    // Fetch data
     const fetchData = async () => {
         const { data } = await api.get(endpoint, {
             params: {
@@ -53,46 +53,80 @@ export default function AppTable({
                 pageSize,
                 search,
                 ...filterValues,
+                sortKey: sortConfig?.key,
+                sortOrder: sortConfig?.direction,
             },
-        })
-        return data
-    }
+        });
+        return data;
+    };
+
+
+    const handleSort = (col: Column) => {
+        if (!col.sortable) return;
+
+        setSortConfig((prev) => {
+            if (!prev || prev.key !== col.accessor) {
+                return { key: col.accessor, direction: 1 };
+            }
+            return { key: col.accessor, direction: prev.direction === 1 ? -1 : 1 };
+        });
+        setPage(1);
+    };
+
 
     const { data, isLoading } = useQuery({
-        queryKey: [...queryKey, page, search, filterValues],
+        queryKey: [...queryKey, page, search, filterValues, sortConfig],
         queryFn: fetchData,
-    })
-
-    const total = data?.data?.total || 0
-    const totalPages = Math.ceil(total / pageSize)
-
+        //@ts-ignore
+        keepPreviousData: true, // optional: smooth page transitions
+    });
+    //@ts-ignore
+    const total = data?.data?.total || 0;
+    const totalPages = Math.ceil(total / pageSize);
 
     const handleFilterChange = (key: string, value: any) => {
-        setFilterValues((prev: any) => ({ ...prev, [key]: value }))
-        setPage(1)
-    }
+        setFilterValues((prev: any) => ({ ...prev, [key]: value }));
+        setPage(1);
+    };
 
     return (
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 h-full overflow-scroll overflow-y-auto">
-            {/* Header */}
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 h-full overflow-hidden">
+            {/* Title */}
             {title && (
-                <h2 className="text-4xl font-bold text-gray-900 mb-4 text-center">{title}</h2>
+                <h2 className="text-4xl font-bold text-gray-900 mb-4 text-center">
+                    {title}
+                </h2>
             )}
 
             {/* Search + Filters */}
             <div className="flex flex-wrap gap-4 mb-4">
                 {showSearch && (
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-gray-400 outline-none"
-                        value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value)
-                            setPage(1)
-                        }}
-                    />
+                    <div className="relative w-64">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-gray-400 outline-none"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPage(1);
+                            }}
+                        />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearch("");
+                                    setPage(1);
+                                }}
+                                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                            >
+                                X
+                            </button>
+                        )}
+                    </div>
                 )}
+
 
                 {filters.map((filter) => {
                     if (filter.type === "select") {
@@ -111,7 +145,7 @@ export default function AppTable({
                                     </option>
                                 ))}
                             </select>
-                        )
+                        );
                     }
 
                     if (filter.type === "date") {
@@ -124,96 +158,128 @@ export default function AppTable({
                                     handleFilterChange(filter.key, e.target.value)
                                 }
                             />
-                        )
+                        );
                     }
 
-                    return null
+                    return null;
                 })}
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-100 text-gray-700">
+            {/* Table wrapper with vertical scroll */}
+            <div className="overflow-x-auto max-h-100 border border-gray-200 rounded-lg overflow-y-auto">
+                <table className="w-full text-sm text-left table-fixed border-collapse">
+                    {/* <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
                         <tr>
                             {columns.map((col) => (
-                                <th key={col.accessor} className="px-4 py-3 font-medium">
+                                <th
+                                    key={col.accessor}
+                                    className="px-4 py-3 font-medium"
+                                    style={{ width: `${100 / columns.length}%` }}
+                                >
                                     {col.header}
                                 </th>
                             ))}
                             {(showView || showDelete) && (
-                                <th className="px-4 py-3">Actions</th>
+                                <th className="px-4 py-3 w-32">Actions</th>
                             )}
                         </tr>
-                    </thead>
+                    </thead> */}
+                    <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
+                        <tr>
+                            {columns.map((col: Column) => (  // explicitly type col as Column
+                                <th
+                                    key={col.accessor}
+                                    className={`px-4 py-3 font-medium ${col.sortable ? "cursor-pointer select-none" : ""}`}
+                                    style={{ width: `${100 / columns.length}%` }}
+                                    onClick={() => handleSort(col)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {col.header}
+                                        {col.sortable && (
+                                            <div>
+                                                {sortConfig?.key === col.accessor ? (
+                                                    sortConfig.direction === 1 ? "▲" : "▼"
+                                                ) : (
+                                                    "⇅"
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </th>
+                            ))}
 
+                        </tr>
+                    </thead>
                     <tbody>
                         {isLoading ? (
                             <tr>
                                 <td
-                                    colSpan={columns.length + 1}
+                                    colSpan={columns.length + (showView || showDelete ? 1 : 0)}
                                     className="text-center py-6"
                                 >
                                     Loading...
                                 </td>
                             </tr>
-                        ) : !data?.data?.data || data?.data.data.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={columns.length + (showView || showDelete ? 1 : 0)}
-                                    className="text-center py-6 text-gray-500"
-                                >
-                                    No data found
-                                </td>
-                            </tr>
-                        ) : (
-                            data?.data?.data?.map((row: any, i: number) => (
-                                <tr
-                                    key={i}
-                                    className="border-t border-gray-200 hover:bg-gray-50"
-                                >
-                                    {columns.map((col) => {
-                                        const value = row[col.accessor]
-
-                                        return (
-                                            <td key={col.accessor} className="px-4 py-3">
-                                                {col.render
-                                                    ? col.render(row)
-                                                    : col.valueColors && col.valueColors[value] ? (
-                                                        <span
-                                                            className={`px-2 py-1 rounded-full text-xs font-medium ${col.valueColors[value]}`}
-                                                        >
-                                                            {value}
-                                                        </span>
-                                                    ) : (
-                                                        value
-                                                    )}
-                                            </td>
-                                        )
-                                    })}
-
-                                    {(showView || showDelete) && (
-                                        <td className="px-4 py-3 flex gap-2">
-                                            {showView && (
-                                                <button className="text-blue-600 hover:text-blue-800 text-sm">
-                                                    View
-                                                </button>
-                                            )}
-                                            {showDelete && (
-                                                <button className="text-red-600 hover:text-red-800 text-sm">
-                                                    Delete
-                                                </button>
-                                            )}
-                                        </td>
-                                    )}
+                        ) :
+                            //ts-ignore
+                            !data?.data?.data?.length ? (
+                                <tr>
+                                    <td
+                                        colSpan={columns.length + (showView || showDelete ? 1 : 0)}
+                                        className="text-center py-6 text-gray-500"
+                                    >
+                                        No data found
+                                    </td>
                                 </tr>
-                            ))
-                        )}
+                            ) : (
+                                //@ts-ignore
+                                data.data.data.map((row: any, i: number) => (
+                                    <tr
+                                        key={i}
+                                        className="border-t border-gray-200 hover:bg-gray-50"
+                                    >
+                                        {columns.map((col) => {
+                                            const value = row[col.accessor];
+                                            return (
+                                                <td key={col.accessor} className="px-4 py-3">
+                                                    {col.render
+                                                        ? col.render(row)
+                                                        : col.valueColors && col.valueColors[value] ? (
+                                                            <span
+                                                                className={`px-2 py-1 rounded-full text-xs font-medium ${col.valueColors[value]}`}
+                                                            >
+                                                                {value}
+                                                            </span>
+                                                        ) : (
+                                                            value
+                                                        )}
+                                                </td>
+                                            );
+                                        })}
+                                        {(showView || showDelete) && (
+                                            <td className="px-4 py-3 flex gap-2 w-32">
+                                                {showView && (
+                                                    <button className="text-blue-600 hover:text-blue-800 text-sm">
+                                                        View
+                                                    </button>
+                                                )}
+                                                {showDelete && (
+                                                    <button className="text-red-600 hover:text-red-800 text-sm">
+                                                        Delete
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            )}
                     </tbody>
                 </table>
-            </div>
 
-            {/* Pagination */}
+
+
+            </div>
             {/* Pagination */}
             <div className="flex justify-end items-center gap-3 mt-4">
                 <button
@@ -237,6 +303,9 @@ export default function AppTable({
                 </button>
             </div>
 
+
+
         </div>
-    )
+    );
 }
+

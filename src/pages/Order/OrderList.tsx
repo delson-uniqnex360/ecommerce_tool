@@ -1,33 +1,42 @@
 import AppTable from "../../components/common/AppTable/AppTable"
 
 
-const UserListPage = () => {
+const OrderListPage = () => {
 
     const columns = [
-        { header: "Name", accessor: "customer_name", sortable: true},
-        { header: "Email", accessor: "customer_email_id", sortable: true },
+        { header: "Order ID", accessor: "order_id" },
         {
             header: "Marketplace",
-            accessor: "marketplace_name",
+            accessor: "marketplace",
             valueColors: {
                 amazon: "bg-green-100 text-green-700",
                 noon: "bg-blue-100 text-blue-700",
             },
         },
+        { header: "Date", accessor: "order_date", sortable: true },
+
         {
-            header: "Total Orders",
-            accessor: "total_orders",
-            sortable: true
+            header: "Customer Name",
+            accessor: "customer_name",
+            sortable: true 
         },
         {
-            header: "Total Orders Items",
-            accessor: "total_order_items",
-            sortable: true
+            header: "Status",
+            accessor: "status"
         },
         {
-            header: "Total Purchase Amount",
-            accessor: "total_purchase_amount",
-            sortable: true
+            header: "Total  Amount",
+            accessor: "total_amount",
+            sortable: true 
+        },
+        {
+            header: "Currency",
+            accessor: "currency"
+        },
+        {
+            header: "Items Count",
+            accessor: "items_count",
+            sortable: true 
         },
     ]
 
@@ -50,12 +59,13 @@ const UserListPage = () => {
 
 
 
+
     return (
         <>
             < AppTable
-                title="Customer List"
-                endpoint="omnisight_v2/customer/customerOrderList/"
-                queryKey={["payments"]}
+                title="Order List"
+                endpoint="omnisight_v2/order/orderList/"
+                queryKey={["orderList"]}
                 columns={columns}
                 filters={filters}
                 showSearch={true}
@@ -66,4 +76,4 @@ const UserListPage = () => {
     )
 }
 
-export default UserListPage;
+export default OrderListPage;

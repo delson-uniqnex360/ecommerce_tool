@@ -1,4 +1,5 @@
 // src/pages/Login/Login.tsx
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
@@ -6,7 +7,7 @@ import type { SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 
-import { setUserId } from "../../utils/auth";
+import { setUserId, getUserId } from "../../utils/auth";
 import AppInputField from "../../components/common/AppForm/AppInput";
 import api from "../../api/axios";
 
@@ -32,6 +33,16 @@ const loginUser = async (data: LoginFormInputs): Promise<LoginResponse> => {
 
 const Login: React.FC<ChildProps> = ({ setIsAuth }) => {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const UserId = getUserId();
+        if (UserId) {
+            setIsAuth(true);
+            navigate("/dashboard");
+        }
+    }, [navigate, setIsAuth]);
+
+
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
 
