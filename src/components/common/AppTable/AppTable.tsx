@@ -39,7 +39,7 @@ export default function AppTable({
     filters = [],
     showView = false,
     showDelete = false,
-    pageSize = 10,
+    pageSize = 24,
 }: AppTableProps) {
 
     const [page, setPage] = useState(1)
@@ -55,13 +55,17 @@ export default function AppTable({
                 ...filterValues,
             },
         })
-        return data?.data
+        return data
     }
 
     const { data, isLoading } = useQuery({
         queryKey: [...queryKey, page, search, filterValues],
         queryFn: fetchData,
     })
+
+    const total = data?.data?.total || 0
+    const totalPages = Math.ceil(total / pageSize)
+
 
     const handleFilterChange = (key: string, value: any) => {
         setFilterValues((prev: any) => ({ ...prev, [key]: value }))
@@ -153,8 +157,17 @@ export default function AppTable({
                                     Loading...
                                 </td>
                             </tr>
+                        ) : !data?.data?.data || data?.data.data.length === 0 ? (
+                            <tr>
+                                <td
+                                    colSpan={columns.length + (showView || showDelete ? 1 : 0)}
+                                    className="text-center py-6 text-gray-500"
+                                >
+                                    No data found
+                                </td>
+                            </tr>
                         ) : (
-                            data?.data?.map((row: any, i: number) => (
+                            data?.data?.data?.map((row: any, i: number) => (
                                 <tr
                                     key={i}
                                     className="border-t border-gray-200 hover:bg-gray-50"
@@ -201,6 +214,7 @@ export default function AppTable({
             </div>
 
             {/* Pagination */}
+            {/* Pagination */}
             <div className="flex justify-end items-center gap-3 mt-4">
                 <button
                     className="px-3 py-1 border rounded disabled:opacity-50"
@@ -211,16 +225,18 @@ export default function AppTable({
                 </button>
 
                 <span className="text-sm text-gray-600">
-                    Page {page}
+                    Page {totalPages === 0 ? 0 : page} of {totalPages}
                 </span>
 
                 <button
-                    className="px-3 py-1 border rounded"
+                    className="px-3 py-1 border rounded disabled:opacity-50"
+                    disabled={page >= totalPages || totalPages === 0}
                     onClick={() => setPage((prev) => prev + 1)}
                 >
                     Next
                 </button>
             </div>
+
         </div>
     )
 }
