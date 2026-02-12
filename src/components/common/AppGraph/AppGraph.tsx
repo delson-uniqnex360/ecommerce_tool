@@ -1,0 +1,173 @@
+import Chart from "react-apexcharts";
+import type { ApexOptions } from "apexcharts";
+
+type AppChartProps = {
+    title?: string;
+    subtitle?: string;
+    categories?: string[];
+    series?: any[];
+    type?: "line" | "area" | "bar" | "donut";
+    height?: number;
+    colors?: string[];
+    smooth?: boolean;
+    showLegend?: boolean;
+};
+
+
+// const AppChart = ({
+//     title,
+//     subtitle,
+//     categories = [],
+//     series = [],
+//     type = "line", // line | area | bar
+//     height = 300,
+//     colors = ["#6366F1", "#10B981", "#F59E0B"],
+//     smooth = true,
+//     showLegend = true,
+// }: AppChartProps) => {
+//     const options: ApexOptions = {
+//         chart: {
+//             type,
+//             height,
+//             toolbar: { show: false },
+//             zoom: { enabled: false },
+//             animations: {
+//                 enabled: true,
+//                 speed: 800,
+//                 animateGradually: { enabled: true, delay: 150 },
+//                 dynamicAnimation: { enabled: true, speed: 350 },
+//             },
+//             background: "transparent",
+//         },
+//         stroke: {
+//             curve: smooth ? "smooth" : "straight",
+//             width: 3,
+//         },
+//         colors,
+//         xaxis: {
+//             categories,
+//             labels: {
+//                 style: {
+//                     colors: "#6B7280", // always this color
+//                 },
+//             },
+//         },
+//         yaxis: {
+//             labels: {
+//                 style: {
+//                     colors: "#6B7280", // always this color
+//                 },
+//             },
+//         },
+//         grid: {
+//             borderColor: "#E5E7EB", // always this color
+//         },
+//         legend: {
+//             show: showLegend,
+//             position: "top",
+//             labels: {
+//                 colors: "#111827", // always this color
+//             },
+//         },
+//         dataLabels: { enabled: false },
+//         tooltip: { theme: "light" }, // always light
+//     };
+
+//     return (
+//         <div className="w-full bg-white rounded-xl p-4 shadow-sm">
+//             {(title || subtitle) && (
+//                 <div className="mb-4">
+//                     {title && (
+//                         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+//                     )}
+//                     {subtitle && (
+//                         <p className="text-sm text-gray-500">{subtitle}</p>
+//                     )}
+//                 </div>
+//             )}
+//             <Chart options={options} series={series} type={type} height={height} />
+//         </div>
+//     );
+// };
+
+// export default AppChart;
+const AppChart = ({
+    title,
+    subtitle,
+    categories = [],
+    series = [],
+    type = "line", // line | area | bar | donut
+    height = 300,
+    colors = ["#6366F1", "#10B981", "#F59E0B"],
+    smooth = true,
+    showLegend = true,
+}: AppChartProps) => {
+    const options: ApexOptions = {
+        chart: {
+            type,
+            height,
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            animations: {
+                enabled: true,
+                speed: 800,
+                animateGradually: { enabled: true, delay: 150 },
+                dynamicAnimation: { enabled: true, speed: 350 },
+            },
+            background: "transparent",
+        },
+        stroke: {
+            curve: smooth ? "smooth" : "straight",
+            width: 3,
+        },
+        colors,
+        legend: {
+            show: showLegend,
+            position: "top",
+            labels: {
+                colors: "#111827",
+            },
+        },
+        dataLabels: { enabled: false },
+        tooltip: { theme: "light" },
+        grid: { borderColor: "#E5E7EB" },
+
+        // ---------------------------
+        // Add labels only for donut charts
+        // ---------------------------
+        ...(type === "donut" ? { labels: categories } : {}),
+
+        // ---------------------------
+        // xaxis and yaxis only for line/area/bar
+        // ---------------------------
+        ...(type !== "donut"
+            ? {
+                xaxis: {
+                    categories,
+                    labels: {
+                        style: { colors: "#6B7280" },
+                    },
+                },
+                yaxis: {
+                    labels: {
+                        style: { colors: "#6B7280" },
+                    },
+                },
+            }
+            : {}),
+    };
+
+    return (
+        <div className="w-full bg-white rounded-xl p-4 shadow-sm">
+            {(title || subtitle) && (
+                <div className="mb-4">
+                    {title && <h3 className="text-lg font-semibold text-gray-800">{title}</h3>}
+                    {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+                </div>
+            )}
+            <Chart options={options} series={series} type={type} height={height} />
+        </div>
+    );
+};
+
+export default AppChart; 
