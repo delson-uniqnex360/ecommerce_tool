@@ -48,8 +48,6 @@ const DashboardPage = () => {
             if (endDate) params.end_date = endDate;
             if (marketplace !== "all") params.marketplaces = [marketplace];
 
-            console.log(startDate, endDate, marketplace)
-
             const response = await api.get("/omnisight_v2/dashboard/dashboardKPIMetrics/", { params });
             return response.data.data as DashboardData;
         },
@@ -63,8 +61,8 @@ const DashboardPage = () => {
     const orderCategories = data?.order_graph_data.map((item) => item.date) || [];
     const orderSeries = [
         { name: "Total Orders", data: data?.order_graph_data.map((item) => item.total_orders) || [] },
-        { name: "Noon", data: data?.order_graph_data.map((item) => item.noon) || [] },
         { name: "Amazon", data: data?.order_graph_data.map((item) => item.amazon) || [] },
+        { name: "Noon", data: data?.order_graph_data.map((item) => item.noon) || [] },
     ];
 
     const revenueMetrics = data?.revenue_metrics;
@@ -158,7 +156,7 @@ const DashboardPage = () => {
                             height={320}
                             categories={orderCategories}
                             series={orderSeries}
-                            colors={["#4F46E5", "#22C55E", "#F59E0B"]}
+                            colors={["#F59E0B", "#4F46E5", "#22C55E",]}
                         />
 
                         <div className="bg-white p-4 rounded-xl shadow">
@@ -179,8 +177,8 @@ const DashboardPage = () => {
                                 <AppChart
                                     type="donut"
                                     series={[
-                                        revenueMetrics.revenue_per_marketplace.amazon,
-                                        revenueMetrics.revenue_per_marketplace.noon,
+                                        revenueMetrics?.revenue_per_marketplace?.amazon ?? 0,
+                                        revenueMetrics?.revenue_per_marketplace?.noon ?? 0,
                                     ]}
                                     categories={["Amazon", "Noon"]}
                                     colors={["#4F46E5", "#22C55E"]}

@@ -90,18 +90,21 @@ type AppChartProps = {
 //     );
 // };
 
-// export default AppChart;
+
 const AppChart = ({
     title,
     subtitle,
     categories = [],
     series = [],
-    type = "line", // line | area | bar | donut
+    type = "line",
     height = 300,
     colors = ["#6366F1", "#10B981", "#F59E0B"],
     smooth = true,
     showLegend = true,
 }: AppChartProps) => {
+
+    const isDonut = type === "donut";
+
     const options: ApexOptions = {
         chart: {
             type,
@@ -116,11 +119,14 @@ const AppChart = ({
             },
             background: "transparent",
         },
+
         stroke: {
             curve: smooth ? "smooth" : "straight",
             width: 3,
         },
+
         colors,
+
         legend: {
             show: showLegend,
             position: "top",
@@ -128,24 +134,45 @@ const AppChart = ({
                 colors: "#111827",
             },
         },
+
         dataLabels: { enabled: false },
-        tooltip: { theme: "light" },
+
         grid: { borderColor: "#E5E7EB" },
 
-        // ---------------------------
-        // Add labels only for donut charts
-        // ---------------------------
-        ...(type === "donut" ? { labels: categories } : {}),
+        tooltip: {
+            theme: "light",
+            ...(isDonut
+                ? {}
+                : {
+                    x: {
+                        formatter: function (value: string) {
+                            return value; // show full SKU in tooltip
+                        },
+                    },
+                }),
+        },
 
         // ---------------------------
-        // xaxis and yaxis only for line/area/bar
+        // Donut Chart Configuration
         // ---------------------------
-        ...(type !== "donut"
+        ...(isDonut
             ? {
+                labels: categories,
+            }
+            : {
+                // ---------------------------
+                // Line / Area / Bar Configuration
+                // ---------------------------
                 xaxis: {
                     categories,
                     labels: {
                         style: { colors: "#6B7280" },
+                        formatter: function (value: string) {
+                            if (!value) return value;
+                            return value.length > 15
+                                ? value.substring(0, 15) + "..."
+                                : value;
+                        },
                     },
                 },
                 yaxis: {
@@ -153,21 +180,35 @@ const AppChart = ({
                         style: { colors: "#6B7280" },
                     },
                 },
-            }
-            : {}),
+            }),
     };
 
     return (
         <div className="w-full bg-white rounded-xl p-4 shadow-sm">
             {(title || subtitle) && (
                 <div className="mb-4">
-                    {title && <h3 className="text-lg font-semibold text-gray-800">{title}</h3>}
-                    {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+                    {title && (
+                        <h3 className="text-lg font-semibold text-gray-800">
+                            {title}
+                        </h3>
+                    )}
+                    {subtitle && (
+                        <p className="text-sm text-gray-500">
+                            {subtitle}
+                        </p>
+                    )}
                 </div>
             )}
-            <Chart options={options} series={series} type={type} height={height} />
+
+            <Chart
+                options={options}
+                series={series}
+                type={type}
+                height={height}
+            />
         </div>
     );
 };
 
-export default AppChart; 
+export default AppChart;
+

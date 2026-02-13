@@ -4,7 +4,7 @@ import AppTable from "../../components/common/AppTable/AppTable"
 const UserListPage = () => {
 
     const columns = [
-        { header: "Name", accessor: "customer_name", sortable: true},
+        { header: "Name", accessor: "customer_name", sortable: true },
         { header: "Email", accessor: "customer_email_id", sortable: true },
         {
             header: "Marketplace",
@@ -52,15 +52,13 @@ const UserListPage = () => {
 
     return (
         <>
-            < AppTable
+            <AppTable
                 title="Customer List"
                 endpoint="omnisight_v2/customer/customerOrderList/"
                 queryKey={["payments"]}
                 columns={columns}
                 filters={filters}
                 showSearch={true}
-            // showView={true}
-            // showDelete={true}
             />
         </>
     )

@@ -27,6 +27,7 @@ interface AppTableProps {
     showSearch?: boolean;
     filters?: FilterConfig[];
     showView?: boolean;
+    onView?: (row: any) => void;
     showDelete?: boolean;
     pageSize?: number;
 }
@@ -41,6 +42,7 @@ export default function AppTable({
     showView = false,
     showDelete = false,
     pageSize = 24,
+    onView
 }: AppTableProps) {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
@@ -170,23 +172,7 @@ export default function AppTable({
             {/* Table */}
             {/* Table wrapper with vertical scroll */}
             <div className="overflow-x-auto max-h-100 border border-gray-200 rounded-lg overflow-y-auto">
-                <table className="w-full text-sm text-left table-fixed border-collapse">
-                    {/* <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
-                        <tr>
-                            {columns.map((col) => (
-                                <th
-                                    key={col.accessor}
-                                    className="px-4 py-3 font-medium"
-                                    style={{ width: `${100 / columns.length}%` }}
-                                >
-                                    {col.header}
-                                </th>
-                            ))}
-                            {(showView || showDelete) && (
-                                <th className="px-4 py-3 w-32">Actions</th>
-                            )}
-                        </tr>
-                    </thead> */}
+                <table className="text-sm text-left table-fixed border-collapse overflow-x-auto">
                     <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
                         <tr>
                             {columns.map((col: Column) => (  // explicitly type col as Column
@@ -210,6 +196,11 @@ export default function AppTable({
                                     </div>
                                 </th>
                             ))}
+
+                            {/* for actions */}
+                            {(showView || showDelete) && (
+                                <th className="px-4 py-3 w-32 text-center font-medium">Actions</th>
+                            )}
 
                         </tr>
                     </thead>
@@ -262,7 +253,10 @@ export default function AppTable({
                                         {(showView || showDelete) && (
                                             <td className="px-4 py-3 flex gap-2 w-32">
                                                 {showView && (
-                                                    <button className="text-blue-600 hover:text-blue-800 text-sm">
+                                                    <button
+                                                        className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                                                        onClick={() => onView?.(row)}
+                                                    >
                                                         View
                                                     </button>
                                                 )}

@@ -1,7 +1,9 @@
 import AppTable from "../../components/common/AppTable/AppTable"
-
+import { useNavigate } from "react-router-dom"
 
 const OrderListPage = () => {
+
+    const navigate = useNavigate();
 
     const columns = [
         { header: "Order ID", accessor: "order_id" },
@@ -18,7 +20,7 @@ const OrderListPage = () => {
         {
             header: "Customer Name",
             accessor: "customer_name",
-            sortable: true 
+            sortable: true
         },
         {
             header: "Status",
@@ -27,7 +29,7 @@ const OrderListPage = () => {
         {
             header: "Total  Amount",
             accessor: "total_amount",
-            sortable: true 
+            sortable: true
         },
         {
             header: "Currency",
@@ -36,7 +38,7 @@ const OrderListPage = () => {
         {
             header: "Items Count",
             accessor: "items_count",
-            sortable: true 
+            sortable: true
         },
     ]
 
@@ -69,7 +71,8 @@ const OrderListPage = () => {
                 columns={columns}
                 filters={filters}
                 showSearch={true}
-            // showView={true}
+                showView={true}
+                onView={(row) => navigate(`/order/detail/${row.id}`)}
             // showDelete={true}
             />
         </>

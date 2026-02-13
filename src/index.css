@@ -9,3 +9,11 @@
         box-sizing: border-box;
     }
 }
+
+.apexcharts-tooltip {
+    max-width: 200px !important;
+    width: auto !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    z-index: 9999 !important;
+}
