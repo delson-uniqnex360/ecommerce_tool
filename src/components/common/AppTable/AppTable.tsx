@@ -13,7 +13,6 @@ interface Column {
     truncate?: boolean;
 }
 
-
 interface FilterConfig {
     key: string;
     label: string;
@@ -52,9 +51,7 @@ export default function AppTable({
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 1 | -1 } | null>(null);
     const [selectedValue, setSelectedValue] = useState('');
 
-
-
-    // Fetch data
+    // ------------------------- Fetch data
     const fetchData = async () => {
         const { data } = await api.get(endpoint, {
             params: {
@@ -69,6 +66,14 @@ export default function AppTable({
         return data;
     };
 
+    const { data, isLoading, isFetching } = useQuery({
+        queryKey: [...queryKey, page, search, filterValues, sortConfig],
+        queryFn: fetchData,
+        keepPreviousData: true, // Keep previous data during fetching
+    });
+
+    const total = data?.data?.total || 0;
+    const totalPages = Math.ceil(total / pageSize);
 
     const handleSort = (col: Column) => {
         if (!col.sortable) return;
@@ -82,19 +87,8 @@ export default function AppTable({
         setPage(1);
     };
 
-
-    const { data, isLoading } = useQuery({
-        queryKey: [...queryKey, page, search, filterValues, sortConfig],
-        queryFn: fetchData,
-        //@ts-ignore
-        keepPreviousData: true, // optional: smooth page transitions
-    });
-    //@ts-ignore
-    const total = data?.data?.total || 0;
-    const totalPages = Math.ceil(total / pageSize);
-
     const handleFilterChange = (key: string, value: any) => {
-        setSelectedValue(value)
+        setSelectedValue(value);
         setFilterValues((prev: any) => ({ ...prev, [key]: value }));
         setPage(1);
     };
@@ -108,73 +102,6 @@ export default function AppTable({
                 </h2>
             )}
 
-            {/* Search + Filters */}
-            {/* <div className="flex flex-wrap gap-4 mb-4">
-                {showSearch && (
-                    <div className="relative w-64">
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-gray-400 outline-none"
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                setPage(1);
-                            }}
-                        />
-                        {search && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setSearch("");
-                                    setPage(1);
-                                }}
-                                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900"
-                            >
-                                X
-                            </button>
-                        )}
-                    </div>
-                )}
-
-
-                {filters.map((filter) => {
-                    if (filter.type === "select") {
-                        return (
-                            <select
-                                key={filter.key}
-                                className={`border border-gray-300 rounded-lg px-3 py-2 text-sm ${!selectedValue ? 'text-gray-400' : 'text-black'
-                                    } focus:ring-2 focus:ring-gray-400 outline-none`}
-                                value={selectedValue}
-                                onChange={(e) => handleFilterChange(filter.key, e.target.value)}
-                            >
-                                <option value="">All {filter.label}</option>
-                                {filter.options?.map((opt) => (
-                                    <option key={opt.value} value={opt.value} className="text-gray-900">
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-
-                        );
-                    }
-
-                    if (filter.type === "date") {
-                        return (
-                            <input
-                                key={filter.key}
-                                type="date"
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                onChange={(e) =>
-                                    handleFilterChange(filter.key, e.target.value)
-                                }
-                            />
-                        );
-                    }
-
-                    return null;
-                })}
-            </div> */}
             {/* Search + Filters */}
             <div className="flex flex-wrap gap-4 mb-4 items-center">
                 {showSearch && (
@@ -239,35 +166,29 @@ export default function AppTable({
                 })}
 
                 {/* Reset Button */}
-                {/* Reset Button */}
                 {(search || Object.keys(filterValues).length > 0 || sortConfig) && (
                     <button
                         type="button"
                         onClick={() => {
-                            setSearch("");          // clear search
-                            setFilterValues({});    // clear filters
-                            setSelectedValue("");   // clear selected dropdown
-                            setSortConfig(null);    // reset sort
-                            setPage(1);             // reset page
+                            setSearch("");
+                            setFilterValues({});
+                            setSelectedValue("");
+                            setSortConfig(null);
+                            setPage(1);
                         }}
                         className="text-gray-600 hover:text-gray-900 text-sm px-2 py-1 border rounded transition cursor-pointer"
                     >
                         Reset
                     </button>
                 )}
-
             </div>
 
-
             {/* Table */}
-            {/* Table wrapper with vertical scroll */}
             <div className="overflow-x-auto max-h-100 border border-gray-200 rounded-lg overflow-y-auto">
                 <table className="text-sm text-left table-fixed border-collapse overflow-x-auto">
-                    {/* <table className="text-sm text-left border-collapse whitespace-nowrap"> */}
-
                     <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
                         <tr>
-                            {columns.map((col: Column) => (  // explicitly type col as Column
+                            {columns.map((col: Column) => (
                                 <th
                                     key={col.accessor}
                                     className={`px-4 py-3 font-medium ${col.sortable ? "cursor-pointer select-none" : ""}`}
@@ -289,15 +210,14 @@ export default function AppTable({
                                 </th>
                             ))}
 
-                            {/* for actions */}
                             {(showView || showDelete) && (
                                 <th className="px-4 py-3 w-32 text-center font-medium">Actions</th>
                             )}
-
                         </tr>
                     </thead>
                     <tbody>
-                        {isLoading ? (
+                        {/* Loading state */}
+                        {isLoading || isFetching ? (
                             <tr>
                                 <td
                                     colSpan={columns.length + (showView || showDelete ? 1 : 0)}
@@ -306,86 +226,75 @@ export default function AppTable({
                                     Loading...
                                 </td>
                             </tr>
-                        ) :
-                            //ts-ignore
-                            !data?.data?.data?.length ? (
-                                <tr>
-                                    <td
-                                        colSpan={columns.length + (showView || showDelete ? 1 : 0)}
-                                        className="text-center py-6 text-gray-500"
-                                    >
-                                        No data found
-                                    </td>
-                                </tr>
-                            ) : (
-                                //@ts-ignore
-                                data.data.data.map((row: any, i: number) => (
-                                    <tr
-                                        key={i}
-                                        className="border-t border-gray-200 hover:bg-gray-50"
-                                    >
-                                        {columns.map((col) => {
-                                            const value = row[col.accessor];
-                                            return (
-                                                <td key={col.accessor} className="px-4 py-3">
-                                                    {col.render ? (
-                                                        col.render(row)
-                                                    ) : col.valueColors && col.valueColors[value] ? (
-                                                        <span
-                                                            className={`px-2 py-1 rounded-full text-xs font-medium ${col.valueColors[value]}`}
-                                                        >
-                                                            {value}
-                                                        </span>
-                                                    ) : col.truncate && typeof value === "string" ? (
-                                                        <div className="relative group max-w-45">
-                                                            <span className="block whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer">
+                        ) : !data?.data?.data?.length ? (
+                            <tr>
+                                <td
+                                    colSpan={columns.length + (showView || showDelete ? 1 : 0)}
+                                    className="text-center py-6 text-gray-500"
+                                >
+                                    No data found
+                                </td>
+                            </tr>
+                        ) : (
+                            data.data.data.map((row: any, i: number) => (
+                                <tr key={i} className="border-t border-gray-200 hover:bg-gray-50">
+                                    {columns.map((col) => {
+                                        const value = row[col.accessor];
+                                        return (
+                                            <td key={col.accessor} className="px-4 py-3">
+                                                {col.render
+                                                    ? col.render(row)
+                                                    : col.valueColors && col.valueColors[value]
+                                                        ? (
+                                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${col.valueColors[value]}`}>
                                                                 {value}
                                                             </span>
-
-                                                            {/* Custom Tooltip */}
-                                                            {value.length > 15 && (
-                                                                <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
-                                                                        max-w-50 w-max wrap-break-word
-                                                                        bg-[#eee] text-gray-900 text-xs rounded px-2 py-1 
-                                                                        whitespace-normal z-999 shadow-lg">
-                                                                    {value}
+                                                        )
+                                                        : col.truncate && typeof value === "string"
+                                                            ? (
+                                                                <div className="relative group max-w-45">
+                                                                    <span className="block whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer">
+                                                                        {value}
+                                                                    </span>
+                                                                    {value.length > 15 && (
+                                                                        <div className="absolute left-0 top-full mt-1 hidden group-hover:block 
+                                                    max-w-50 w-max wrap-break-word
+                                                    bg-[#eee] text-gray-900 text-xs rounded px-2 py-1 
+                                                    whitespace-normal z-999 shadow-lg">
+                                                                            {value}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        value
-                                                    )}
-
-                                                </td>
-                                            );
-                                        })}
-                                        {(showView || showDelete) && (
-                                            <td className="px-4 py-3 flex gap-2 w-32">
-                                                {showView && (
-                                                    <button
-                                                        className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
-                                                        onClick={() => onView?.(row)}
-                                                    >
-                                                        View
-                                                    </button>
-                                                )}
-                                                {showDelete && (
-                                                    <button className="text-red-600 hover:text-red-800 text-sm">
-                                                        Delete
-                                                    </button>
-                                                )}
+                                                            )
+                                                            : value
+                                                }
                                             </td>
-                                        )}
-                                    </tr>
-                                ))
-                            )}
+                                        );
+                                    })}
+                                    {(showView || showDelete) && (
+                                        <td className="px-4 py-3 flex gap-2 w-32">
+                                            {showView && (
+                                                <button
+                                                    className="text-blue-600 hover:text-blue-800 text-sm cursor-pointer"
+                                                    onClick={() => onView?.(row)}
+                                                >
+                                                    View
+                                                </button>
+                                            )}
+                                            {showDelete && (
+                                                <button className="text-red-600 hover:text-red-800 text-sm">
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
-
-
-
             </div>
+
             {/* Pagination */}
             <div className="flex justify-end items-center gap-3 mt-4">
                 <button
@@ -408,10 +317,6 @@ export default function AppTable({
                     Next
                 </button>
             </div>
-
-
-
         </div>
     );
 }
-
