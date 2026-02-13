@@ -48,6 +48,9 @@ export default function AppTable({
     const [search, setSearch] = useState("");
     const [filterValues, setFilterValues] = useState<any>({});
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 1 | -1 } | null>(null);
+    const [selectedValue, setSelectedValue] = useState('');
+
+
 
     // Fetch data
     const fetchData = async () => {
@@ -89,6 +92,7 @@ export default function AppTable({
     const totalPages = Math.ceil(total / pageSize);
 
     const handleFilterChange = (key: string, value: any) => {
+        setSelectedValue(value)
         setFilterValues((prev: any) => ({ ...prev, [key]: value }));
         setPage(1);
     };
@@ -137,18 +141,19 @@ export default function AppTable({
                         return (
                             <select
                                 key={filter.key}
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                                onChange={(e) =>
-                                    handleFilterChange(filter.key, e.target.value)
-                                }
+                                className={`border border-gray-300 rounded-lg px-3 py-2 text-sm ${!selectedValue ? 'text-gray-400' : 'text-black'
+                                    } focus:ring-2 focus:ring-gray-400 outline-none`}
+                                value={selectedValue}
+                                onChange={(e) => handleFilterChange(filter.key, e.target.value)}
                             >
                                 <option value="">All {filter.label}</option>
                                 {filter.options?.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
+                                    <option key={opt.value} value={opt.value} className="text-gray-900">
                                         {opt.label}
                                     </option>
                                 ))}
                             </select>
+
                         );
                     }
 

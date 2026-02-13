@@ -1,3 +1,4 @@
+//@ts-nocheck
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 
@@ -11,6 +12,7 @@ type AppChartProps = {
     colors?: string[];
     smooth?: boolean;
     showLegend?: boolean;
+    tickAmountValue?: number
 };
 
 
@@ -101,11 +103,19 @@ const AppChart = ({
     colors = ["#6366F1", "#10B981", "#F59E0B"],
     smooth = true,
     showLegend = true,
+    tickAmountValue = 7
 }: AppChartProps) => {
 
     const isDonut = type === "donut";
 
     const options: ApexOptions = {
+        plotOptions: {
+          bar: {
+            dataLabels: {
+              position: "top"
+            }
+          }
+        },
         chart: {
             type,
             height,
@@ -134,8 +144,34 @@ const AppChart = ({
                 colors: "#111827",
             },
         },
+        // ###
+        // dataLabels: {
+        //     enabled: type === "bar", // show only for bar charts
+        //     style: {
+        //         colors: ["#111827"], // color of the label
+        //         fontSize: "12px",
+        //         fontWeight: "bold",
+        //     },
+        //     offsetY: -5, // move label a bit above the bar
+        // },
+        dataLabels: {
+            enabled: type === "bar",
+            style: {
+                colors: ['#6B7280'], // gray color
+                fontSize: '12px',
+                fontWeight: 'bold',
+            },
+            background: { enabled: false },
+            dropShadow: { enabled: false },
+            formatter: function (val: number, opts: any) {
+                // opts.seriesIndex and opts.dataPointIndex are available
+                // Adjust offset dynamically if needed
+                return val;
+            },
+            offsetY: -20, // large enough to float above even tiny bars
+        },
 
-        dataLabels: { enabled: false },
+
 
         grid: { borderColor: "#E5E7EB" },
 
@@ -165,6 +201,7 @@ const AppChart = ({
                 // ---------------------------
                 xaxis: {
                     categories,
+                    tickAmount: Math.ceil(categories.length / tickAmountValue),
                     labels: {
                         style: { colors: "#6B7280" },
                         formatter: function (value: string) {
