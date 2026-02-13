@@ -293,7 +293,8 @@ const DashboardPage = () => {
 
                     {/* Orders & Revenue Graphs */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <AppChart
+
+                            <AppChart
                             title="Orders"
                             subtitle="Order performance over time"
                             type="area"
@@ -301,7 +302,11 @@ const DashboardPage = () => {
                             categories={orderCategories}
                             series={orderSeries}
                             colors={["#F59E0B", "#4F46E5", "#22C55E"]}
+                        
                         />
+
+
+                        
                         <div className="bg-white p-4 rounded-xl shadow flex flex-col items-center">
                             <p className="text-gray-500 text-sm mb-2">Marketplace Revenue</p>
                             <AppChart

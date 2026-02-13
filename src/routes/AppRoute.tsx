@@ -8,6 +8,7 @@ import { LOGIN_ROUTE } from "./auth/route";
 import { DASHBOARD_ROUTE } from "./dashboard/route";
 import { ORDER_ROUTE } from "./order/route";
 import { USER_LIST_ROUTE } from "./user/route";
+import { ProductRoute } from "./product/route";
 
 
 interface AppRoutesProps {
@@ -16,7 +17,7 @@ interface AppRoutesProps {
 }
 
 // Combine all authenticated routes
-const AUTH_ROUTES = [...DASHBOARD_ROUTE, ...USER_LIST_ROUTE, ...ORDER_ROUTE];
+const AUTH_ROUTES = [...DASHBOARD_ROUTE, ...USER_LIST_ROUTE, ...ORDER_ROUTE, ...ProductRoute];
 
 const AppRoutes = ({ isAuth, setIsAuth }: AppRoutesProps) => {
     return (

@@ -11,6 +11,7 @@ const AppSidebar = () => {
         { name: "Dashboard", path: "/dashboard" },
         { name: "Customer List", path: "/users" },
         { name: "Order List", path: "/order" },
+        { name: "Product List", path: "/product" }
         // Add more links here if needed
     ];
 
